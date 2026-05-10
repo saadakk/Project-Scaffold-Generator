@@ -17,9 +17,9 @@
     </parent>
 
     <modules>
-        <module>services/ConfigService</module>
-        <module>services/discoveryService</module>
-        <module>services/GenerateProjectService</module>
+        <module>Services/ConfigService</module>
+        <module>Services/discoveryService</module>
+        <module>Services/GenerateProjectService</module>
     </modules>
 
     <properties>
