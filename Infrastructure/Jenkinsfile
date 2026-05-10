@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        VAULT_TOKEN     = credentials('vault-token')
-        DOCKER_REGISTRY = 'your-dockerhub-username'
+        VAULT_TOKEN     = credentials('vaultToken')
+        DOCKER_REGISTRY = 'saada9bib'
     }
 
     stages {
@@ -16,17 +16,13 @@ pipeline {
 
         stage('Build All Services') {
             steps {
-                dir('Project-Scaffold-Generator') {
-                    sh 'mvn clean package -DskipTests'
-                }
+                sh 'mvn clean package -DskipTests'
             }
         }
 
         stage('Test All Services') {
             steps {
-                dir('Project-Scaffold-Generator') {
-                    sh 'mvn test'
-                }
+                sh 'mvn test'
             }
             post {
                 always {
@@ -73,7 +69,7 @@ pipeline {
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
+                    credentialsId: 'dockerhubCredentials',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
@@ -93,8 +89,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    docker compose down
-                    docker compose up -d --build
+                    docker compose -f docker-compose.yml down
+                    docker compose -f docker-compose.yml up -d --build
                 '''
             }
         }
@@ -102,10 +98,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline succeeded — all services deployed A sahbi'
+            echo '✅ Pipeline succeeded — all services deployed'
         }
         failure {
-            echo '❌ Pipeline failed — check logs abovew t2akked'
+            echo '❌ Pipeline failed — check logs above'
         }
         always {
             sh 'docker logout'
