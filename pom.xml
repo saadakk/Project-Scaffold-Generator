@@ -16,6 +16,12 @@
         <version>4.0.6</version>
     </parent>
 
+    <modules>
+        <module>services/ConfigService</module>
+        <module>services/discoveryService</module>
+        <module>services/GenerateProjectService</module>
+    </modules>
+
     <properties>
         <java.version>17</java.version>
         <spring-cloud.version>2025.1.1</spring-cloud.version>
@@ -29,6 +35,18 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.78.1</version>
+                <!-- 1.78.1 fixes both CVEs -->
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>1.78.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

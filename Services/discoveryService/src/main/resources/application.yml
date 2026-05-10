@@ -1,21 +1,11 @@
-spring:
-  application:
-    name: discovery-service        # must match discovery-service.yml in config server
-
-  cloud:
-    config:
-      uri: http://localhost:8888
-      fail-fast: false             # ? don't crash if config server not ready
-      retry:
-        max-attempts: 5
-        initial-interval: 3000
-        max-interval: 10000
-        multiplier: 1.5
-  config:
-    import: optional:configserver:http://localhost:8888   # ? optional: prefix means don't crash
-
 server:
   port: 8761
+
+spring:
+  application:
+    name: discovery-service
+  config:
+    import: optional:configserver:http://localhost:8888
 
 eureka:
   instance:
@@ -24,4 +14,6 @@ eureka:
     register-with-eureka: false
     fetch-registry: false
     service-url:
-      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://localhost:8761/eureka/
+  server:
+    wait-time-in-ms-when-sync-empty: 0

@@ -12,6 +12,8 @@ services:
     # ↑ removed -dev-listen-address from here
     # address is already set via VAULT_DEV_LISTEN_ADDRESS env var
 
+#---------------------------------<MICROSERVICES CONTAINERS>
+
   config-service:
     build: ./Services/ConfigService
     container_name: config-service
@@ -24,3 +26,101 @@ services:
     depends_on:
       vault:
         condition: service_healthy
+
+  discovery-service:
+    build: ./Services/discoveryService
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    depends_on:
+      - vault
+
+  generate-project-service:
+    build: ./Services/GenerateProjectService
+    container_name: generate-project-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - config-service
+      - otel-collector
+
+#---------------------------------<MICROSERVICES CONTAINERS>
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: [ "--config=/etc/otel/config.yaml" ]
+    volumes:
+      - ./observability/otel-collector.yml:/etc/otel/config.yaml
+    ports:
+      - "4317:4317"    # your services send traces/metrics here via gRPC
+      - "4318:4318"    # your services send traces/metrics here via HTTP
+      - "8889:8889"    # prometheus scrapes metrics from here
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=7d"    # keep 7 days of metrics
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus             # persist metrics on disk
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    networks:
+      - monitoring
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./observability/tempo.yml:/etc/tempo.yaml
+      - tempo-data:/tmp/tempo
+    ports:
+      - "3200:3200"    # tempo HTTP API
+      - "4319:4317"    # OTLP gRPC for traces (mapped to avoid conflict with otel-collector)
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_FEATURE_TOGGLES_ENABLE: traceqlEditor   # enables trace search UI
+    volumes:
+      - ./observability/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  loki-data:
+  tempo-data:
+  grafana-data:

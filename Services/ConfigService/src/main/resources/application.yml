@@ -8,6 +8,8 @@ spring:
   profiles:
     active: vault
 
+
+
   cloud:
     vault: # ← ADD THIS BLOCK
       authentication: TOKEN
@@ -30,11 +32,14 @@ spring:
           port: ${VAULT_PORT:8200}
           scheme: http
           kv-version: 2
-
 eureka:
   client:
+    register-with-eureka: false    # ← add this
+    fetch-registry: false          # ← add this
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+      defaultZone: http://localhost:8761/eureka/
+
+
   instance:
     prefer-ip-address: true
 
