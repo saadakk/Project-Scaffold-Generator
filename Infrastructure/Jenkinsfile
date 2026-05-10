@@ -105,7 +105,7 @@ pipeline {
             echo '✅ Pipeline succeeded — all services deployed A sahbi'
         }
         failure {
-            echo '❌ Pipeline failed — check logs above'
+            echo '❌ Pipeline failed — check logs abovew t2akked'
         }
         always {
             sh 'docker logout'
