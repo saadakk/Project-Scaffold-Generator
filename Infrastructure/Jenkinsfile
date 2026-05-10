@@ -102,7 +102,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline succeeded — all services deployed Al3xiWeER'
+            echo '✅ Pipeline succeeded — all services deployed A sahbi'
         }
         failure {
             echo '❌ Pipeline failed — check logs above'
