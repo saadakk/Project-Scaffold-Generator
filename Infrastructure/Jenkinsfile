@@ -1,0 +1,114 @@
+pipeline {
+    agent any
+
+    environment {
+        VAULT_TOKEN     = credentials('vault-token')
+        DOCKER_REGISTRY = 'your-dockerhub-username'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build All Services') {
+            steps {
+                dir('Project-Scaffold-Generator') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Test All Services') {
+            steps {
+                dir('Project-Scaffold-Generator') {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            parallel {
+                stage('Build discovery-service') {
+                    steps {
+                        sh '''
+                            docker build \
+                            -t ${DOCKER_REGISTRY}/discovery-service:${BUILD_NUMBER} \
+                            -t ${DOCKER_REGISTRY}/discovery-service:latest \
+                            ./Services/discoveryService
+                        '''
+                    }
+                }
+                stage('Build config-service') {
+                    steps {
+                        sh '''
+                            docker build \
+                            -t ${DOCKER_REGISTRY}/config-service:${BUILD_NUMBER} \
+                            -t ${DOCKER_REGISTRY}/config-service:latest \
+                            ./Services/ConfigService
+                        '''
+                    }
+                }
+                stage('Build generate-project-service') {
+                    steps {
+                        sh '''
+                            docker build \
+                            -t ${DOCKER_REGISTRY}/generate-project-service:${BUILD_NUMBER} \
+                            -t ${DOCKER_REGISTRY}/generate-project-service:latest \
+                            ./Services/GenerateProjectService
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${DOCKER_REGISTRY}/discovery-service:${BUILD_NUMBER}
+                        docker push ${DOCKER_REGISTRY}/discovery-service:latest
+                        docker push ${DOCKER_REGISTRY}/config-service:${BUILD_NUMBER}
+                        docker push ${DOCKER_REGISTRY}/config-service:latest
+                        docker push ${DOCKER_REGISTRY}/generate-project-service:${BUILD_NUMBER}
+                        docker push ${DOCKER_REGISTRY}/generate-project-service:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker compose down
+                    docker compose up -d --build
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline succeeded — all services deployed'
+        }
+        failure {
+            echo '❌ Pipeline failed — check logs above'
+        }
+        always {
+            sh 'docker logout'
+        }
+    }
+}

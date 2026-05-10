@@ -1,0 +1,40 @@
+apiVersion: 1
+
+datasources:
+
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      timeInterval: 15s
+    # Grafana queries Prometheus for metrics dashboards
+
+  - name: Loki
+    type: loki
+    uid: loki
+    url: http://loki:3100
+    jsonData:
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: '"traceId":"(\w+)"'
+          name: TraceID
+          url: '$${__value.raw}'
+    # the derivedFields block is the magic:
+    # when Grafana shows a log line containing traceId
+    # it creates a clickable link that opens that trace in Tempo
+    # this is how you jump from log → trace in one click
+
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    url: http://tempo:3200
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: loki
+        filterByTraceID: true
+      serviceMap:
+        datasourceUid: prometheus
+    # tracesToLogsV2 → from a trace, click to see logs
+    # serviceMap → shows dependency map between services

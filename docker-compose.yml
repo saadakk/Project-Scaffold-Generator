@@ -24,8 +24,7 @@ services:
       VAULT_PORT: 8200
       VAULT_TOKEN: myroot
     depends_on:
-      vault:
-        condition: service_healthy
+      - vault
 
   discovery-service:
     build: ./Services/discoveryService
@@ -34,6 +33,7 @@ services:
       - "8761:8761"
     depends_on:
       - vault
+      - config-service
 
   generate-project-service:
     build: ./Services/GenerateProjectService
@@ -42,11 +42,12 @@ services:
       - "8080:8080"
     depends_on:
       - config-service
+      - discovery-service
       - otel-collector
 
 #---------------------------------<MICROSERVICES CONTAINERS>
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:0.96.0
     container_name: otel-collector
     command: [ "--config=/etc/otel/config.yaml" ]
     volumes:
@@ -57,6 +58,9 @@ services:
       - "8889:8889"    # prometheus scrapes metrics from here
     networks:
       - monitoring
+    depends_on:
+      - loki
+      - tempo
 
   prometheus:
     image: prom/prometheus:latest
@@ -89,7 +93,7 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./observability/tempo.yml:/etc/tempo.yaml
-      - tempo-data:/tmp/tempo
+      - tempo-data:/var/tempo
     ports:
       - "3200:3200"    # tempo HTTP API
       - "4319:4317"    # OTLP gRPC for traces (mapped to avoid conflict with otel-collector)
