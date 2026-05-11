@@ -119,6 +119,36 @@ services:
     networks:
       - monitoring
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-123456}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  auth-service:
+    build: ./Services/Auth-service
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - config-service
+      - postgres
+      - redis
+
 networks:
   monitoring:
     driver: bridge
