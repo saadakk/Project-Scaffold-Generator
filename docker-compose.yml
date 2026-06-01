@@ -19,6 +19,12 @@ services:
       VAULT_HOST: vault
       VAULT_PORT: 8200
       VAULT_TOKEN: myroot
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
     depends_on:
       - vault
 
@@ -27,6 +33,12 @@ services:
     container_name: discovery-service
     ports:
       - "8761:8761"
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
     depends_on:
       - vault
       - config-service
@@ -138,11 +150,26 @@ services:
       postgres:
         condition: service_healthy
       config-service:
-        condition: service_started
+        condition: service_healthy
       discovery-service:
-        condition: service_started
+        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
+
+  api-gateway:
+    build: ./Services/ApiGateway
+    container_name: api-gateway
+    ports:
+      - "8222:8222"
+    environment:
+      VAULT_TOKEN: myroot
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
 
 volumes:
   prometheus-data:

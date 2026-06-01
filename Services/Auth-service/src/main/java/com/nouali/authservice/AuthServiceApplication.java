@@ -16,6 +16,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 
 
 @SpringBootApplication
@@ -33,6 +35,17 @@ public class AuthServiceApplication {
             System.out.println(">>> db.url = " + env.getProperty("db.url"));
         };
     }
+
+    /*@Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health").permitAll()  // ← add this
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                );
+        return http.build();
+    }*/
 
     @Bean
     CommandLineRunner run(UserServiceImpl userService, UserRepository userservice, RoleRepository roleRepository, RolesServiceImpl rolesService, UserRoleRepository userRoleRepository) {
