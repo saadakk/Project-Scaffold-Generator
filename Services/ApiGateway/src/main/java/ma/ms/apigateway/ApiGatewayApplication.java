@@ -16,6 +16,6 @@ public class ApiGatewayApplication {
 
     @Bean
     public WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
+        return WebClient.builder();//test
     }
 }
