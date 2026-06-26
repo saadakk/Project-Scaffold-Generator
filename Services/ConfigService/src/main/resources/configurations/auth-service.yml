@@ -9,7 +9,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
@@ -18,16 +18,6 @@ spring:
     redis:
       host: ${redis.host}
       port: ${redis.port}
-
-jwt:
-  secret: ${jwt.secret}
-  access:
-    expiration: ${jwt.access.expiration}
-  refresh:
-    expiration: ${jwt.refresh.expiration}
-
-role:
-  utilisateur: ${role.utilisateur}
 
 eureka:
   client:

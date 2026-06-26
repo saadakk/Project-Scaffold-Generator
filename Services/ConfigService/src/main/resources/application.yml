@@ -6,12 +6,23 @@ spring:
     name: config-service
 
   profiles:
-    active: vault
-
-
+    active: composite
 
   cloud:
-    vault: # ← ADD THIS BLOCK
+    config:
+      server:
+        composite:
+          - type: native
+            search-locations: classpath:/configurations
+          - type: vault
+            authentication: TOKEN
+            token: ${VAULT_TOKEN:myroot}
+            host: ${VAULT_HOST:localhost}
+            port: ${VAULT_PORT:8200}
+            scheme: http
+            kv-version: 2
+
+    vault:
       authentication: TOKEN
       token: ${VAULT_TOKEN:myroot}
       host: ${VAULT_HOST:localhost}
@@ -23,23 +34,13 @@ spring:
         default-context: application
         profile-separator: '/'
         version: 2
-    config:
-      server:
-        vault: # ← YOU ALREADY HAVE THIS
-          authentication: TOKEN
-          token: ${VAULT_TOKEN:myroot}
-          host: ${VAULT_HOST:localhost}
-          port: ${VAULT_PORT:8200}
-          scheme: http
-          kv-version: 2
+
 eureka:
   client:
-    register-with-eureka: false    # ← add this
-    fetch-registry: false          # ← add this
+    register-with-eureka: false
+    fetch-registry: false
     service-url:
       defaultZone: http://discovery-service:8761/eureka/
-
-
   instance:
     prefer-ip-address: true
 

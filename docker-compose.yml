@@ -158,6 +158,20 @@ services:
       redis:
         condition: service_healthy
 
+  recommandation-service:
+    build: ./Services/recommandation
+    container_name: recommandation-service
+    ports:
+      - "8083:8083"
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: myroot
+      VAULT_SECRET_PATH: secret/data/recommandation-service
+      MODEL: llama-3.3-70b-versatile
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+
   api-gateway:
     build: ./Services/ApiGateway
     container_name: api-gateway
