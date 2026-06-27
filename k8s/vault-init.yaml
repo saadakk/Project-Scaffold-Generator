@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-init
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: vault-init
+          image: hashicorp/vault:1.15.0
+          env:
+            - name: VAULT_ADDR
+              value: "http://vault:8200"
+            - name: VAULT_TOKEN
+              value: "my-root-token"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for Vault to be ready..."
+              until curl -s http://vault:8200/v1/sys/health | grep -q '"initialized":true'; do
+                echo "Vault not ready yet, retrying in 5s..."
+                sleep 5
+              done
+
+              echo "Enabling KV secrets engine..."
+              vault secrets enable -path=secret kv-v2 2>/dev/null || echo "Already enabled"
+
+              echo "Writing auth-service secrets..."
+              vault kv put secret/auth-service \
+                spring.datasource.url="jdbc:postgresql://postgres:5432/test" \
+                spring.datasource.username="postgres" \
+                spring.datasource.password="123456" \
+                spring.datasource.driver-class-name="org.postgresql.Driver" \
+                spring.data.redis.host="redis" \
+                spring.data.redis.port="6379" \
+                jwt.secret="EZORkXmL3QzN19SEuqFkxsJTKopqifarhkjhrUDKj3k=" \
+                jwt.access.expiration="900000" \
+                jwt.refresh.expiration="604800000" \
+                role.utilisateur="DEVELOPER_FREE"
+
+              echo "Writing api-gateway secrets..."
+              vault kv put secret/api-gateway \
+                jwt.secret="EZORkXmL3QzN19SEuqFkxsJTKopqifarhkjhrUDKj3k=" \
+                spring.cloud.gateway.server.webflux.routes.0.id="auth-service" \
+                spring.cloud.gateway.server.webflux.routes.0.uri="lb://auth-service" \
+                spring.cloud.gateway.server.webflux.routes.0.predicates.0="Path=/api/auth/**" \
+                spring.cloud.gateway.server.webflux.routes.1.id="generate-project-service" \
+                spring.cloud.gateway.server.webflux.routes.1.uri="lb://generate-project-service" \
+                spring.cloud.gateway.server.webflux.routes.1.predicates.0="Path=/api/generate/**" \
+                spring.cloud.gateway.server.webflux.routes.2.id="recommendation-service" \
+                spring.cloud.gateway.server.webflux.routes.2.uri="lb://recommendation-service" \
+                spring.cloud.gateway.server.webflux.routes.2.predicates.0="Path=/api/recommend/**"
+
+              echo "All secrets written successfully!"

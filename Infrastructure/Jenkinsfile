@@ -77,6 +77,16 @@ pipeline {
                         '''
                     }
                 }
+                stage('Recommendation Service') {
+                    steps {
+                        sh '''
+                        docker build \
+                        -t ${DOCKER_REGISTRY}/recommendation-service:${BUILD_NUMBER} \
+                        -t ${DOCKER_REGISTRY}/recommendation-service:latest \
+                        ./Services/recommandation
+                        '''
+                    }
+                }
             }
         }
 
@@ -105,6 +115,9 @@ pipeline {
 
                     docker push ${DOCKER_REGISTRY}/generateproject-service:${BUILD_NUMBER}
                     docker push ${DOCKER_REGISTRY}/generateproject-service:latest
+
+                    docker push ${DOCKER_REGISTRY}/recommendation-service:${BUILD_NUMBER}
+                    docker push ${DOCKER_REGISTRY}/recommendation-service:latest
                     '''
                 }
             }
@@ -120,6 +133,7 @@ pipeline {
                 kubectl rollout restart deployment config-service
                 kubectl rollout restart deployment discovery-service
                 kubectl rollout restart deployment generateproject-service
+                kubectl rollout restart deployment recommendation-service
                 '''
             }
         }

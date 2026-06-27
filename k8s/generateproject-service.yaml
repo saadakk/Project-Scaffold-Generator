@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generateproject-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: generateproject-service
+  template:
+    metadata:
+      labels:
+        app: generateproject-service
+    spec:
+      containers:
+        - name: generateproject-service
+          image: hindelatache/generateproject-service:latest
+          ports:
+            - containerPort: 8082
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: generateproject-service
+spec:
+  selector:
+    app: generateproject-service
+  ports:
+    - port: 80
+      targetPort: 8082

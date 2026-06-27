@@ -17,3 +17,16 @@ spec:
           image: hindelatache/apigateway:latest
           ports:
             - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apigateway-service
+spec:
+  selector:
+    app: apigateway
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: LoadBalancer
