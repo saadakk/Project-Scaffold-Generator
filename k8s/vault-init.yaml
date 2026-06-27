@@ -53,5 +53,9 @@ spec:
                 spring.cloud.gateway.server.webflux.routes.2.id="recommendation-service" \
                 spring.cloud.gateway.server.webflux.routes.2.uri="lb://recommendation-service" \
                 spring.cloud.gateway.server.webflux.routes.2.predicates.0="Path=/api/recommend/**"
+              
+              echo "Writing recommandation-service secrets..."
+                vault kv put secret/recommandation-service \
+                GROQ_API_KEY="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"
 
               echo "All secrets written successfully!"
