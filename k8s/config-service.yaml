@@ -19,20 +19,11 @@ spec:
             - containerPort: 8888
           env:
             - name: VAULT_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: services-config
-                  key: VAULT_HOST
+              value: "vault"
             - name: VAULT_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: services-config
-                  key: VAULT_PORT
+              value: "8200"
             - name: VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: vault-token-secret
-                  key: VAULT_TOKEN
+              value: "hvs.t7nFP1cMLC8siCf0Gl3YciUQ"
 ---
 apiVersion: v1
 kind: Service
