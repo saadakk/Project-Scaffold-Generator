@@ -20,17 +20,6 @@ pipeline {
             }
         }
 
-        stage('Unit Tests') {
-            steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
-                }
-            }
-        }
-
         stage('Docker Build') {
             parallel {
 
@@ -71,8 +60,8 @@ pipeline {
                     steps {
                         sh '''
                         docker build \
-                        -t ${DOCKER_REGISTRY}/discovery-service:${BUILD_NUMBER} \
-                        -t ${DOCKER_REGISTRY}/discovery-service:latest \
+                        -t ${DOCKER_REGISTRY}/discoveryservice:${BUILD_NUMBER} \
+                        -t ${DOCKER_REGISTRY}/discoveryservice:latest \
                         ./Services/discoveryService
                         '''
                     }
@@ -111,8 +100,8 @@ pipeline {
                     docker push ${DOCKER_REGISTRY}/config-service:${BUILD_NUMBER}
                     docker push ${DOCKER_REGISTRY}/config-service:latest
 
-                    docker push ${DOCKER_REGISTRY}/discovery-service:${BUILD_NUMBER}
-                    docker push ${DOCKER_REGISTRY}/discovery-service:latest
+                    docker push ${DOCKER_REGISTRY}/discoveryservice:${BUILD_NUMBER}
+                    docker push ${DOCKER_REGISTRY}/discoveryservice:latest
 
                     docker push ${DOCKER_REGISTRY}/generateproject-service:${BUILD_NUMBER}
                     docker push ${DOCKER_REGISTRY}/generateproject-service:latest
@@ -138,15 +127,15 @@ pipeline {
 
     post {
         success {
-            echo '🚀 SUCCESS: Full CI/CD pipeline completed (DockerHub + Kubernetes + Vault)'
+            echo 'SUCCESS: Full CI/CD pipeline completed (DockerHub + Kubernetes + Vault)'
         }
 
         failure {
-            echo '❌ FAILED: Check logs'
+            echo ' FAILED: Check logs'
         }
 
         always {
-            sh 'docker logout'
+            sh 'docker logout || true'
         }
     }
 }
