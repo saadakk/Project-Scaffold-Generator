@@ -27,5 +27,5 @@ spec:
   selector:
     app: recommendation-service
   ports:
-    - port: 80
+    - port: 8083
       targetPort: 8083

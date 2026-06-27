@@ -18,15 +18,21 @@ spec:
           ports:
             - containerPort: 8888
           env:
-            - name: SPRING_CLOUD_VAULT_HOST
-              value: "vault"
-            - name: SPRING_CLOUD_VAULT_PORT
-              value: "8200"
-            - name: SPRING_CLOUD_VAULT_SCHEME
-              value: "http"
-            - name: SPRING_CLOUD_VAULT_TOKEN
-              value: "my-root-token"
-
+            - name: VAULT_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: services-config
+                  key: VAULT_HOST
+            - name: VAULT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: services-config
+                  key: VAULT_PORT
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-token-secret
+                  key: VAULT_TOKEN
 ---
 apiVersion: v1
 kind: Service
@@ -36,5 +42,5 @@ spec:
   selector:
     app: config-service
   ports:
-    - port: 80
+    - port: 8888
       targetPort: 8888

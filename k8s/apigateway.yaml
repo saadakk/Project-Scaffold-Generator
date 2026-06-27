@@ -17,7 +17,17 @@ spec:
           image: hindelatache/apigateway:latest
           ports:
             - containerPort: 8080
-
+          env:
+            - name: SPRING_CLOUD_CONFIG_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: services-config
+                  key: CONFIG_SERVER_URI
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: services-config
+                  key: EUREKA_URI
 ---
 apiVersion: v1
 kind: Service
