@@ -126,17 +126,23 @@ pipeline {
         stage('Deploy to Kubernetes (K3s)') {
             steps {
                 sh '''
-                # Delete vault-init job so it reruns on every deploy ok
+                # Delete vault-init job so it reruns on every deploy
                 kubectl delete job vault-init --ignore-not-found=true
+
+                # Wait a moment for deletion to complete
+                sleep 3
 
                 kubectl apply -f k8s/
 
-                kubectl rollout restart deployment apigateway
-                kubectl rollout restart deployment auth-service
-                kubectl rollout restart deployment config-service
-                kubectl rollout restart deployment discovery-service
-                kubectl rollout restart deployment generateproject-service
-                kubectl rollout restart deployment recommendation-service
+                # Wait before restarting to avoid patch conflict
+                sleep 5
+
+                kubectl rollout restart deployment/apigateway
+                kubectl rollout restart deployment/auth-service
+                kubectl rollout restart deployment/config-service
+                kubectl rollout restart deployment/discovery-service
+                kubectl rollout restart deployment/generateproject-service
+                kubectl rollout restart deployment/recommendation-service
                 '''
             }
         }
