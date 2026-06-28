@@ -20,7 +20,7 @@ spec:
             - -c
             - |
               echo "Waiting for Vault to be unsealed..."
-              until curl -s http://vault:8200/v1/sys/health | grep -q '"sealed":false'; do
+              until vault status 2>/dev/null | grep -q 'Sealed.*false'; do
                 echo "Vault sealed or not ready, retrying in 5s..."
                 sleep 5
               done
