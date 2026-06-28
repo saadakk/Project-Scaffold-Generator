@@ -17,6 +17,17 @@ spec:
           image: hindelatache/recommendation-service:latest
           ports:
             - containerPort: 8083
+          env:
+            - name: VAULT_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: services-config
+                  key: VAULT_ADDR
+            - name: VAULT_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: services-config
+                  key: VAULT_TOKEN
 
 ---
 apiVersion: v1

@@ -142,34 +142,36 @@ pipeline {
         }
 
         stage('Unseal Vault') {
-                    steps {
-                        withCredentials([
-                            string(credentialsId: 'vaultUnsealKey1', variable: 'UNSEAL_KEY_1'),
-                            string(credentialsId: 'vaultUnsealKey2', variable: 'UNSEAL_KEY_2'),
-                            string(credentialsId: 'vaultUnsealKey3', variable: 'UNSEAL_KEY_3')
-                        ]) {
-                            sh '''
-                            # Wait for vault pod to be ready
-                            kubectl wait --for=condition=ready pod -l app=vault --timeout=60s
+            steps {
+                withCredentials([
+                    string(credentialsId: 'vaultUnsealKey1', variable: 'UNSEAL_KEY_1'),
+                    string(credentialsId: 'vaultUnsealKey2', variable: 'UNSEAL_KEY_2'),
+                    string(credentialsId: 'vaultUnsealKey3', variable: 'UNSEAL_KEY_3')
+                ]) {
+                    sh '''
+                    kubectl wait --for=condition=ready pod -l app=vault --timeout=60s
 
-                            # Unseal Vault
-                            kubectl exec deployment/vault -- /bin/sh -c "
-                              export VAULT_ADDR=http://127.0.0.1:8200
-                              vault operator unseal $UNSEAL_KEY_1
-                              vault operator unseal $UNSEAL_KEY_2
-                              vault operator unseal $UNSEAL_KEY_3
-                            "
+                    kubectl exec deployment/vault -- /bin/sh -c "
+                      export VAULT_ADDR=http://127.0.0.1:8200
+                      vault operator unseal $UNSEAL_KEY_1
+                      vault operator unseal $UNSEAL_KEY_2
+                      vault operator unseal $UNSEAL_KEY_3
+                    "
 
-                            # Wait a few seconds then restart config-service
-                            # so it can fetch secrets from the now-unsealed Vault
-                            sleep 5
-                            kubectl rollout restart deployment/config-service
-                            kubectl rollout restart deployment/auth-service
-                            kubectl rollout restart deployment/apigateway
-                            '''
-                        }
-                    }
+                    # Wait for vault-init job to complete
+                    kubectl wait --for=condition=complete job/vault-init --timeout=120s
+
+                    # Wait for secrets to propagate then restart services
+                    sleep 5
+                    kubectl rollout restart deployment/config-service
+                    sleep 10
+                    kubectl rollout restart deployment/auth-service
+                    kubectl rollout restart deployment/apigateway
+                    kubectl rollout restart deployment/recommendation-service
+                    '''
                 }
+            }
+        }
     }
 
     post {
