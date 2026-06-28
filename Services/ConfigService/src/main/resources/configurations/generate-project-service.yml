@@ -1,6 +1,9 @@
 spring:
   application:
     name: generate-project-service
+  data:
+    mongodb:
+      uri: ${mongodb.uri}
 
 eureka:
   client:

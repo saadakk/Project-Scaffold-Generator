@@ -21,6 +21,8 @@ services:
       - config-service
       - discovery-service
       - otel-collector
+      - mongodb
+
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.96.0
@@ -187,6 +189,25 @@ services:
       auth-service:
         condition: service_healthy
 
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: mongo123
+      MONGO_INITDB_DATABASE: generate_project_db
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+
 volumes:
   prometheus-data:
   loki-data:
@@ -194,3 +215,4 @@ volumes:
   grafana-data:
   postgres-data:
   redis-data:
+  mongo-data:

@@ -40,11 +40,7 @@ spec:
               jwt.access.expiration="900000" \
               jwt.refresh.expiration="604800000" \
               role.utilisateur="DEVELOPER_FREE" \
-              db.url="jdbc:postgresql://postgres:5432/test" \
-              db.username="postgres" \
-              db.password="123456" \
-              redis.host="redis" \
-              redis.port="6379"
+              
 
               echo "Writing api-gateway secrets..."
               vault kv put secret/api-gateway \
@@ -62,5 +58,9 @@ spec:
               echo "Writing recommandation-service secrets..."
               vault kv put secret/recommandation-service \
                 GROQ_API_KEY="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"
+              
+              vault kv put secret/generate-project-service \
+              mongodb.uri="mongodb://admin:mongo123@localhost:27017/generate_project_db?authSource=admin"
+              
 
               echo "All secrets written successfully!"
