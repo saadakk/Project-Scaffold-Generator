@@ -14,14 +14,14 @@ spec:
             - name: VAULT_ADDR
               value: "http://vault:8200"
             - name: VAULT_TOKEN
-              value: "my-root-token"
+              value: "hvs.t7nFP1cMLC8siCf0Gl3YciUQ"
           command:
             - /bin/sh
             - -c
             - |
-              echo "Waiting for Vault to be ready..."
-              until curl -s http://vault:8200/v1/sys/health | grep -q '"initialized":true'; do
-                echo "Vault not ready yet, retrying in 5s..."
+              echo "Waiting for Vault to be unsealed..."
+              until curl -s http://vault:8200/v1/sys/health | grep -q '"sealed":false'; do
+                echo "Vault sealed or not ready, retrying in 5s..."
                 sleep 5
               done
 
@@ -53,9 +53,9 @@ spec:
                 spring.cloud.gateway.server.webflux.routes.2.id="recommendation-service" \
                 spring.cloud.gateway.server.webflux.routes.2.uri="lb://recommendation-service" \
                 spring.cloud.gateway.server.webflux.routes.2.predicates.0="Path=/api/recommend/**"
-              
+
               echo "Writing recommandation-service secrets..."
-                vault kv put secret/recommandation-service \
+              vault kv put secret/recommandation-service \
                 GROQ_API_KEY="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"
 
               echo "All secrets written successfully!"

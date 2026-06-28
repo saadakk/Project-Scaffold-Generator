@@ -126,6 +126,9 @@ pipeline {
         stage('Deploy to Kubernetes (K3s)') {
             steps {
                 sh '''
+                # Delete vault-init job so it reruns on every deploy
+                kubectl delete job vault-init --ignore-not-found=true
+
                 kubectl apply -f k8s/
 
                 kubectl rollout restart deployment apigateway
